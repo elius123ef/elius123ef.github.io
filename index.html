@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Elius Trujillo — Data Scientist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;500&family=Lato:wght@300;400&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:         #0C0E13;
+      --surface:    #12151C;
+      --surface2:   #181C26;
+      --border:     rgba(255,255,255,0.07);
+      --ink:        #E8E6DF;
+      --ink-muted:  #7A8094;
+      --amber:      #E8A848;
+      --amber-dim:  rgba(232,168,72,0.12);
+      --blue:       #4A90D9;
+      --serif:      'Playfair Display', Georgia, serif;
+      --mono:       'JetBrains Mono', monospace;
+      --sans:       'Lato', sans-serif;
+      --r:          8px;
+      --ease:       cubic-bezier(0.4,0,0.2,1);
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; }
+    body {
+      background:var(--bg); color:var(--ink); font-family:var(--sans);
+      font-weight:300; line-height:1.65; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+    }
+
+    /* CANVAS */
+    #neural-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.4; }
+
+    /* NAV */
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:50;
+      background:rgba(12,14,19,0.84); backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-inner {
+      max-width:1040px; margin:0 auto; padding:0 36px;
+      height:58px; display:flex; align-items:center; justify-content:space-between;
+    }
+    .nav-brand {
+      font-family:var(--mono); font-size:12px; font-weight:500;
+      color:var(--amber); text-decoration:none; letter-spacing:0.1em;
+      display:flex; align-items:center; gap:8px;
+    }
+    .nav-brand::before {
+      content:''; width:7px; height:7px; border-radius:50%; background:var(--amber);
+      animation:pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.6)} }
+    .nav-links { display:flex; gap:28px; list-style:none; }
+    .nav-links a {
+      font-family:var(--mono); font-size:11px; color:var(--ink-muted);
+      text-decoration:none; letter-spacing:0.08em; text-transform:uppercase; transition:color 0.2s;
+    }
+    .nav-links a:hover { color:var(--ink); }
+
+    /* LAYOUT */
+    .wrap { position:relative; z-index:1; }
+    .container { max-width:1040px; margin:0 auto; padding:0 36px; }
+
+    /* HERO */
+    #hero { min-height:100vh; display:flex; align-items:center; padding:110px 0 70px; border-bottom:1px solid var(--border); }
+    .hero-grid { display:grid; grid-template-columns:1fr 320px; gap:72px; align-items:center; }
+    .hero-eyebrow {
+      font-family:var(--mono); font-size:11px; color:var(--amber);
+      letter-spacing:0.16em; text-transform:uppercase; margin-bottom:20px;
+      opacity:0; animation:fadeUp 0.8s 0.1s var(--ease) forwards;
+    }
+    .hero-name {
+      font-family:var(--serif); font-size:clamp(42px,5.5vw,70px);
+      line-height:1.05; color:var(--ink); margin-bottom:8px;
+      opacity:0; animation:fadeUp 0.8s 0.2s var(--ease) forwards;
+    }
+    .hero-name em { font-style:italic; color:var(--amber); display:block; }
+    .hero-subtitle {
+      font-family:var(--mono); font-size:12px; color:var(--ink-muted);
+      letter-spacing:0.08em; margin-bottom:28px;
+      opacity:0; animation:fadeUp 0.8s 0.3s var(--ease) forwards;
+    }
+    .hero-bio {
+      font-size:15px; color:var(--ink-muted); line-height:1.82;
+      max-width:490px; margin-bottom:34px;
+      opacity:0; animation:fadeUp 0.8s 0.4s var(--ease) forwards;
+    }
+    .hero-bio strong { color:var(--ink); font-weight:400; }
+    .hero-ctas {
+      display:flex; gap:10px; flex-wrap:wrap;
+      opacity:0; animation:fadeUp 0.8s 0.5s var(--ease) forwards;
+    }
+    .btn {
+      display:inline-flex; align-items:center; gap:7px;
+      padding:10px 22px; border-radius:var(--r);
+      font-family:var(--mono); font-size:11px; font-weight:500;
+      letter-spacing:0.08em; text-transform:uppercase;
+      text-decoration:none; border:1px solid transparent;
+      transition:all 0.22s var(--ease);
+    }
+    .btn-amber { background:var(--amber); color:#0C0E13; border-color:var(--amber); }
+    .btn-amber:hover { background:#f0b85a; }
+    .btn-outline { background:transparent; color:var(--ink-muted); border-color:var(--border); }
+    .btn-outline:hover { border-color:rgba(255,255,255,0.25); color:var(--ink); }
+
+    /* HERO CARD */
+    .hero-card {
+      background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:26px;
+      opacity:0; animation:fadeUp 0.8s 0.6s var(--ease) forwards;
+    }
+    .hero-card-title {
+      font-family:var(--mono); font-size:10px; color:var(--amber);
+      letter-spacing:0.14em; text-transform:uppercase; margin-bottom:18px;
+    }
+    .stack-item { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+    .stack-item:last-child { border-bottom:none; }
+    .stack-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .stack-label { font-size:13px; color:var(--ink); flex:1; }
+    .stack-bar-wrap { width:74px; height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+    .stack-bar { height:100%; border-radius:2px; background:var(--amber); width:0; transition:width 1.2s 1s var(--ease); }
+    .stack-bar.animate { width:var(--w); }
+
+    /* SECTIONS */
+    section { padding:88px 0; border-bottom:1px solid var(--border); }
+    .sec-label { font-family:var(--mono); font-size:10px; color:var(--amber); letter-spacing:0.18em; text-transform:uppercase; margin-bottom:10px; }
+    .sec-title { font-family:var(--serif); font-size:clamp(26px,3.5vw,40px); line-height:1.1; color:var(--ink); margin-bottom:50px; }
+    .sec-title em { font-style:italic; color:var(--amber); }
+
+    /* REVEAL */
+    .rev { opacity:0; transform:translateY(20px); transition:opacity 0.65s var(--ease), transform 0.65s var(--ease); }
+    .rev.on { opacity:1; transform:translateY(0); }
+
+    /* SKILLS GRID */
+    .skills-wrap { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px; }
+    .skill-card {
+      background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:20px;
+      transition:border-color 0.2s, background 0.2s;
+    }
+    .skill-card:hover { border-color:rgba(232,168,72,0.3); background:var(--surface2); }
+    .skill-icon { font-size:22px; margin-bottom:10px; }
+    .skill-name { font-size:13px; color:var(--ink); margin-bottom:11px; }
+    .tags { display:flex; flex-wrap:wrap; gap:5px; }
+    .tag {
+      font-family:var(--mono); font-size:10px; padding:3px 7px; border-radius:4px;
+      color:var(--ink-muted); background:rgba(255,255,255,0.04); border:1px solid var(--border);
+    }
+
+    /* EDUCATION */
+    .edu-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-bottom:52px; }
+    .edu-card {
+      background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:20px 22px;
+      transition:border-color 0.2s;
+    }
+    .edu-card:hover { border-color:rgba(232,168,72,0.25); }
+    .edu-date { font-family:var(--mono); font-size:10px; color:var(--amber); letter-spacing:0.08em; margin-bottom:6px; }
+    .edu-degree { font-size:14px; color:var(--ink); margin-bottom:4px; line-height:1.4; }
+    .edu-school { font-family:var(--mono); font-size:11px; color:var(--ink-muted); }
+
+    /* LANGUAGES */
+    .lang-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:32px; }
+    .lang-pill {
+      display:flex; align-items:center; gap:10px; padding:10px 18px;
+      background:var(--surface); border:1px solid var(--border); border-radius:var(--r);
+      font-size:13px; color:var(--ink);
+    }
+    .lang-level { font-family:var(--mono); font-size:10px; color:var(--ink-muted); margin-left:4px; }
+
+    /* TIMELINE */
+    .timeline { padding-left:28px; position:relative; }
+    .timeline::before {
+      content:''; position:absolute; left:0; top:6px; bottom:6px;
+      width:1px; background:linear-gradient(to bottom, var(--amber), transparent);
+    }
+    .tl-item { position:relative; margin-bottom:42px; }
+    .tl-item::before {
+      content:''; position:absolute; left:-32px; top:5px;
+      width:8px; height:8px; border-radius:50%; background:var(--amber); border:2px solid var(--bg);
+    }
+    .tl-date { font-family:var(--mono); font-size:10px; color:var(--amber); letter-spacing:0.1em; margin-bottom:5px; }
+    .tl-role { font-size:15px; color:var(--ink); margin-bottom:3px; }
+    .tl-org  { font-family:var(--mono); font-size:11px; color:var(--ink-muted); margin-bottom:10px; }
+    .tl-list { font-size:13px; color:var(--ink-muted); line-height:1.72; max-width:560px; padding-left:16px; }
+    .tl-list li { margin-bottom:5px; }
+    .tl-text { font-size:13px; color:var(--ink-muted); line-height:1.72; max-width:560px; }
+
+    .cv-btn {
+      display:inline-flex; align-items:center; gap:10px; margin-top:40px;
+      padding:12px 24px; border:1px solid rgba(232,168,72,0.35);
+      border-radius:var(--r); background:var(--amber-dim);
+      font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:0.1em;
+      color:var(--amber); text-decoration:none; text-transform:uppercase;
+      transition:background 0.2s, border-color 0.2s;
+    }
+    .cv-btn:hover { background:rgba(232,168,72,0.2); border-color:rgba(232,168,72,0.6); }
+
+    /* PROJECT CARDS */
+    .proj-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+    .proj-card {
+      background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:22px;
+      display:flex; flex-direction:column;
+      transition:border-color 0.22s, transform 0.22s, background 0.22s;
+    }
+    .proj-card:hover { border-color:rgba(74,144,217,0.35); transform:translateY(-3px); background:var(--surface2); }
+    .proj-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
+    .proj-icon { font-size:20px; }
+    .proj-badge {
+      font-family:var(--mono); font-size:9px; font-weight:500; padding:3px 8px;
+      border-radius:4px; letter-spacing:0.08em; text-transform:uppercase;
+    }
+    .badge-gh    { background:rgba(255,255,255,0.05); color:var(--ink-muted); border:1px solid var(--border); }
+    .badge-local { background:rgba(74,144,217,0.1);   color:var(--blue);      border:1px solid rgba(74,144,217,0.2); }
+    .badge-live  { background:rgba(232,168,72,0.1);   color:var(--amber);     border:1px solid rgba(232,168,72,0.25); }
+    .proj-name { font-size:15px; color:var(--ink); margin-bottom:8px; }
+    .proj-desc { font-size:12px; color:var(--ink-muted); line-height:1.65; flex:1; margin-bottom:16px; }
+    .proj-foot { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; }
+    .proj-langs { display:flex; gap:5px; flex-wrap:wrap; }
+    .proj-stars { font-family:var(--mono); font-size:10px; color:var(--ink-muted); }
+    .proj-link {
+      font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:0.08em;
+      color:var(--blue); text-decoration:none; text-transform:uppercase; transition:opacity 0.2s;
+    }
+    .proj-link:hover { opacity:0.7; }
+    .loading-msg { font-family:var(--mono); font-size:12px; color:var(--ink-muted); padding:20px 0; }
+    .loading-msg::after { content:'...'; animation:dots 1.2s infinite; }
+    @keyframes dots { 0%,20%{content:'.'}40%,60%{content:'..'}80%,100%{content:'...'} }
+
+    /* CONTACT */
+    .contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; max-width:520px; }
+    .contact-card {
+      display:flex; align-items:center; gap:14px; padding:16px 20px;
+      background:var(--surface); border:1px solid var(--border); border-radius:var(--r);
+      text-decoration:none; color:var(--ink); transition:border-color 0.2s, background 0.2s;
+    }
+    .contact-card:hover { border-color:rgba(232,168,72,0.35); background:var(--surface2); }
+    .contact-icon {
+      width:36px; height:36px; border-radius:8px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--amber-dim); font-size:16px;
+    }
+    .contact-label { font-family:var(--mono); font-size:10px; color:var(--ink-muted); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:3px; }
+    .contact-value { font-size:13px; color:var(--ink); }
+
+    /* FOOTER */
+    footer { padding:26px 0; text-align:center; font-family:var(--mono); font-size:10px; color:var(--ink-muted); letter-spacing:0.1em; }
+    footer span { color:var(--amber); }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+    @media(max-width:800px) {
+      .hero-grid { grid-template-columns:1fr; gap:40px; }
+      .hero-card { display:none; }
+      .contact-grid { grid-template-columns:1fr; max-width:100%; }
+    }
+    @media(max-width:520px) {
+      .container { padding:0 20px; }
+      .nav-inner { padding:0 20px; }
+      .nav-links li:nth-child(3), .nav-links li:nth-child(4) { display:none; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="neural-canvas"></canvas>
+
+<div class="wrap">
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a class="nav-brand" href="#hero">ELIUS.DEV</a>
+      <ul class="nav-links">
+        <li><a href="#about">Perfil</a></li>
+        <li><a href="#experience">Experiencia</a></li>
+        <li><a href="#github">GitHub</a></li>
+        <li><a href="#contact">Contacto</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div>
+          <p class="hero-eyebrow">Disponible para nuevas oportunidades · Barcelona, España</p>
+          <h1 class="hero-name">
+            Elius Fernando<br/>
+            <em>Trujillo A.</em>
+          </h1>
+          <p class="hero-subtitle">Data Scientist · Python · Machine Learning · NLP</p>
+          <p class="hero-bio">
+            Data Scientist con experiencia práctica en <strong>Python, Machine Learning y NLP</strong>.
+            Transformo datos reales en insights accionables — desde EDA y modelos supervisados/no supervisados
+            hasta computer vision y series temporales. Comprometido con el aprendizaje continuo y el trabajo en equipo.
+          </p>
+          <div class="hero-ctas">
+            <a class="btn btn-amber" href="#contact">Contactar</a>
+            <a class="btn btn-outline" href="https://github.com/elius123ef" target="_blank">GitHub</a>
+            <a class="btn btn-outline" href="./Data-Scientist-EN.pdf" download=Data-Scientist-EN">CV ↓</a>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <div class="hero-card-title">// Stack principal</div>
+          <div class="stack-item">
+            <div class="stack-dot" style="background:#E8A848"></div>
+            <div class="stack-label">Python</div>
+            <div class="stack-bar-wrap"><div class="stack-bar" style="--w:95%"></div></div>
+          </div>
+          <div class="stack-item">
+            <div class="stack-dot" style="background:#4A90D9"></div>
+            <div class="stack-label">Data Analysis</div>
+            <div class="stack-bar-wrap"><div class="stack-bar" style="--w:90%"></div></div>
+          </div>
+          <div class="stack-item">
+            <div class="stack-dot" style="background:#7FB069"></div>
+            <div class="stack-label">Machine Learning</div>
+            <div class="stack-bar-wrap"><div class="stack-bar" style="--w:85%"></div></div>
+          </div>
+          <div class="stack-item">
+            <div class="stack-dot" style="background:#C07DDA"></div>
+            <div class="stack-label">Deep Learning</div>
+            <div class="stack-bar-wrap"><div class="stack-bar" style="--w:78%"></div></div>
+          </div>
+          <div class="stack-item">
+            <div class="stack-dot" style="background:#E87548"></div>
+            <div class="stack-label">NLP</div>
+            <div class="stack-bar-wrap"><div class="stack-bar" style="--w:75%"></div></div>
+          </div>
+          <div class="stack-item">
+            <div class="stack-dot" style="background:#48C8E8"></div>
+            <div class="stack-label">SQL</div>
+            <div class="stack-bar-wrap"><div class="stack-bar" style="--w:70%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="container">
+      <p class="sec-label rev">Habilidades técnicas</p>
+      <h2 class="sec-title rev">Ecosistema <em>Python</em> &amp; herramientas</h2>
+
+      <div class="skills-wrap">
+        <div class="skill-card rev">
+          <div class="skill-icon">📊</div>
+          <div class="skill-name">Data Analysis &amp; Viz</div>
+          <div class="tags">
+            <span class="tag">Pandas</span><span class="tag">NumPy</span>
+            <span class="tag">Matplotlib</span><span class="tag">Seaborn</span>
+            <span class="tag">EDA</span><span class="tag">Streamlit</span>
+          </div>
+        </div>
+        <div class="skill-card rev">
+          <div class="skill-icon">🧠</div>
+          <div class="skill-name">Machine Learning</div>
+          <div class="tags">
+            <span class="tag">Scikit-learn</span><span class="tag">Random Forest</span>
+            <span class="tag">Boosting</span><span class="tag">KNN</span>
+            <span class="tag">K-Means</span><span class="tag">Naive Bayes</span>
+          </div>
+        </div>
+        <div class="skill-card rev">
+          <div class="skill-icon">🔥</div>
+          <div class="skill-name">Deep Learning</div>
+          <div class="tags">
+            <span class="tag">TensorFlow</span><span class="tag">Keras</span>
+            <span class="tag">PyTorch</span><span class="tag">Computer Vision</span>
+          </div>
+        </div>
+        <div class="skill-card rev">
+          <div class="skill-icon">🗣️</div>
+          <div class="skill-name">NLP &amp; Transformers</div>
+          <div class="tags">
+            <span class="tag">HuggingFace</span><span class="tag">Transformers</span>
+            <span class="tag">Spam Detection</span><span class="tag">Sentiment</span>
+          </div>
+        </div>
+        <div class="skill-card rev">
+          <div class="skill-icon">🗄️</div>
+          <div class="skill-name">Bases de datos</div>
+          <div class="tags">
+            <span class="tag">SQL</span><span class="tag">MySQL</span>
+          </div>
+        </div>
+        <div class="skill-card rev">
+          <div class="skill-icon">🔧</div>
+          <div class="skill-name">Dev Tools</div>
+          <div class="tags">
+            <span class="tag">Git</span><span class="tag">GitHub</span>
+            <span class="tag">Jupyter</span><span class="tag">VS Code</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- EDUCACIÓN -->
+      <h3 class="rev" style="font-family:var(--serif);font-size:24px;color:var(--ink);margin:64px 0 28px;">Formación</h3>
+      <div class="edu-grid">
+        <div class="edu-card rev">
+          <div class="edu-date">02/2026 — Presente</div>
+          <div class="edu-degree">English for IT 1 &amp; 2</div>
+          <div class="edu-school">IT GoeTech Academy</div>
+        </div>
+        <div class="edu-card rev">
+          <div class="edu-date">09/2025 — 02/2026</div>
+          <div class="edu-degree">Data Science &amp; Machine Learning</div>
+          <div class="edu-school">4Geeks Academy</div>
+        </div>
+        <div class="edu-card rev">
+          <div class="edu-date">2018 — 2019</div>
+          <div class="edu-degree">B.Sc. Ingeniería de Sistemas e Informática</div>
+          <div class="edu-school">UNEFA · Venezuela</div>
+        </div>
+        <div class="edu-card rev">
+          <div class="edu-date">2017 — 2019</div>
+          <div class="edu-degree">Gastronomía Internacional</div>
+          <div class="edu-school">AFOGO</div>
+        </div>
+      </div>
+
+      <!-- IDIOMAS -->
+      <h3 class="rev" style="font-family:var(--serif);font-size:24px;color:var(--ink);margin:0 0 20px;">Idiomas</h3>
+      <div class="lang-row rev">
+        <div class="lang-pill">🇪🇸 Español <span class="lang-level">NATIVO</span></div>
+        <div class="lang-pill">🇬🇧 English <span class="lang-level">INTERMEDIATE</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section id="experience">
+    <div class="container">
+      <p class="sec-label rev">Trayectoria</p>
+      <h2 class="sec-title rev">Proyectos &amp; <em>Experiencia</em></h2>
+
+      <div class="timeline">
+        <div class="tl-item rev">
+          <div class="tl-date">09/2025 — Presente · España, Remoto</div>
+          <div class="tl-role">Proyecto personal — Data Science &amp; Machine Learning</div>
+          <div class="tl-org">
+            <a href="https://github.com/elius123ef/" target="_blank" style="color:var(--amber);text-decoration:none;">github.com/elius123ef</a>
+          </div>
+          <ul class="tl-list">
+            <li>EDA, limpieza, transformación y visualización de datasets reales (Airbnb NY, Diabetes).</li>
+            <li>Modelos de regresión y clasificación: Logistic/Linear Regression, Decision Trees, Random Forest, Boosting, KNN, Naive Bayes.</li>
+            <li>Clustering con K-Means para segmentación de datos.</li>
+            <li>Series temporales para forecasting de ventas.</li>
+            <li>Computer Vision: clasificación de imágenes con el dataset Dogs vs Cats.</li>
+            <li>NLP: detección de spam y análisis de reseñas con Transformers.</li>
+          </ul>
+        </div>
+
+        <div class="tl-item rev">
+          <div class="tl-date">01/2026 — Presente · Sabadell, España</div>
+          <div class="tl-role">Cook – Waiter</div>
+          <div class="tl-org">Ümet Taverna</div>
+          <p class="tl-text">Análisis de comportamiento de clientes, eficiencia de procesos y optimización de inventario — habilidades transferibles a proyectos de Data Analytics en entorno real de negocio.</p>
+        </div>
+
+        <div class="tl-item rev">
+          <div class="tl-date">09/2025 — 01/2026 · Barcelona, España</div>
+          <div class="tl-role">Store Assistant</div>
+          <div class="tl-org">GALOPIZZA SL</div>
+          <p class="tl-text">Customer insights, process analytics y optimización de supply chain aplicados en pizzería de alto volumen.</p>
+        </div>
+
+        <div class="tl-item rev">
+          <div class="tl-date">03/2025 — 09/2025 · Viena, Austria</div>
+          <div class="tl-role">Cook</div>
+          <div class="tl-org">Waldemar Tagesbar</div>
+          <p class="tl-text">Experiencia internacional en operaciones, gestión de recursos y trabajo bajo presión en entorno multicultural.</p>
+        </div>
+      </div>
+
+      <a class="cv-btn rev" href="Data-Scientist-EN.pdf" download>↓ &nbsp; Descargar CV completo (PDF)</a>
+    </div>
+  </section>
+
+  <!-- GITHUB -->
+  <section id="github">
+    <div class="container">
+      <p class="sec-label rev">Open Source</p>
+      <h2 class="sec-title rev">Repositorios en <em>GitHub</em></h2>
+      <div id="gh-grid" class="proj-grid">
+        <p class="loading-msg">Cargando repos de elius123ef</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOCAL PROJECTS -->
+  <section id="projects">
+    <div class="container">
+      <p class="sec-label rev">En local &amp; demos</p>
+      <h2 class="sec-title rev">Proyectos <em>propios</em></h2>
+      <div id="local-grid" class="proj-grid"></div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="container">
+      <p class="sec-label rev">¿Hablamos?</p>
+      <h2 class="sec-title rev" style="margin-bottom:14px;">Contacto</h2>
+      <p class="rev" style="color:var(--ink-muted);font-size:14px;max-width:460px;margin-bottom:38px;">
+        Abierto a oportunidades en Data Science y ML Engineering. Respondo rápido — no dudes en escribir.
+      </p>
+      <div class="contact-grid rev">
+        <a class="contact-card" href="tel:+34631935181">
+          <div class="contact-icon">📞</div>
+          <div>
+            <div class="contact-label">Teléfono</div>
+            <div class="contact-value">+34 631 935 181</div>
+          </div>
+        </a>
+        <a class="contact-card" href="mailto:elius134@gmail.com">
+          <div class="contact-icon">✉️</div>
+          <div>
+            <div class="contact-label">Email</div>
+            <div class="contact-value">elius134@gmail.com</div>
+          </div>
+        </a>
+        <a class="contact-card" href="https://linkedin.com/in/elius-trujillo" target="_blank">
+          <div class="contact-icon">💼</div>
+          <div>
+            <div class="contact-label">LinkedIn</div>
+            <div class="contact-value">elius-trujillo</div>
+          </div>
+        </a>
+        <a class="contact-card" href="https://github.com/elius123ef" target="_blank">
+          <div class="contact-icon">🐙</div>
+          <div>
+            <div class="contact-label">GitHub</div>
+            <div class="contact-value">elius123ef</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>© 2025 <span>Elius Fernando Trujillo Albarracín</span> · Data Scientist · Barcelona</p>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+/* NEURAL CANVAS */
+(function(){
+  const canvas=document.getElementById('neural-canvas'), ctx=canvas.getContext('2d');
+  let W,H,nodes=[],animId;
+  const N=55,DIST=160,COL='232,168,72';
+  function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+  function init(){ nodes=Array.from({length:N},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*2+1})); }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    nodes.forEach(n=>{ n.x+=n.vx; n.y+=n.vy; if(n.x<0||n.x>W)n.vx*=-1; if(n.y<0||n.y>H)n.vy*=-1; });
+    for(let i=0;i<N;i++) for(let j=i+1;j<N;j++){
+      const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.hypot(dx,dy);
+      if(d<DIST){ctx.beginPath();ctx.strokeStyle=`rgba(${COL},${(1-d/DIST)*.2})`;ctx.lineWidth=.8;ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.stroke();}
+    }
+    nodes.forEach(n=>{ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle=`rgba(${COL},0.5)`;ctx.fill();});
+    animId=requestAnimationFrame(draw);
+  }
+  resize();init();draw();
+  window.addEventListener('resize',()=>{cancelAnimationFrame(animId);resize();init();draw();});
+})();
+
+/* CONFIG — edita tus proyectos locales aqui */
+const GITHUB_USER='elius123ef', GITHUB_MAX=6;
+
+const LOCAL_PROJECTS=[
+  { name:'EDA & ML Pipeline', desc:'Pipeline end-to-end: carga de datos, limpieza, visualización y modelos con Scikit-learn sobre datasets reales.', langs:['Python','Pandas','Scikit-learn'], url:'http://localhost:8888', badge:'local', icon:'🔬' },
+  { name:'NLP Spam Detector', desc:'Clasificación de texto para detección de spam usando Transformers y HuggingFace. Interfaz Streamlit.', langs:['Python','HuggingFace','Streamlit'], url:'http://localhost:8501', badge:'local', icon:'🗣️' },
+  { name:'Time Series Forecast', desc:'Forecasting de ventas con ARIMA y LSTM. Visualización interactiva y métricas de evaluación.', langs:['Python','TensorFlow','Seaborn'], url:'http://localhost:7860', badge:'local', icon:'📈' },
+];
+
+/* GITHUB LOADER */
+async function loadGitHub(){
+  const grid=document.getElementById('gh-grid');
+  try{
+    const res=await fetch(`https://api.github.com/users/${GITHUB_USER}/repos?sort=updated&per_page=30`);
+    const data=await res.json();
+    if(!Array.isArray(data)) throw new Error();
+    const repos=data.filter(r=>!r.fork).sort((a,b)=>b.stargazers_count-a.stargazers_count).slice(0,GITHUB_MAX);
+    if(!repos.length){grid.innerHTML=`<p style="color:var(--ink-muted);font-family:var(--mono);font-size:12px;">No se encontraron repositorios públicos.</p>`;return;}
+    grid.innerHTML=repos.map(r=>`
+      <div class="proj-card rev">
+        <div class="proj-head"><span class="proj-icon">🗂</span><span class="proj-badge badge-gh">GitHub</span></div>
+        <div class="proj-name">${r.name}</div>
+        <div class="proj-desc">${r.description||'Sin descripción.'}</div>
+        <div class="proj-foot">
+          <div class="proj-langs">${r.language?`<span class="tag">${r.language}</span>`:''}</div>
+          <span class="proj-stars">${r.stargazers_count>0?'★ '+r.stargazers_count:''}</span>
+          <a class="proj-link" href="${r.html_url}" target="_blank">Ver →</a>
+        </div>
+      </div>`).join('');
+    triggerReveal();
+  }catch(e){grid.innerHTML=`<p style="color:var(--ink-muted);font-family:var(--mono);font-size:12px;">No se pudieron cargar los repositorios.</p>`;}
+}
+
+/* LOCAL RENDER */
+function renderLocal(){
+  document.getElementById('local-grid').innerHTML=LOCAL_PROJECTS.map(p=>`
+    <div class="proj-card rev">
+      <div class="proj-head"><span class="proj-icon">${p.icon}</span><span class="proj-badge badge-${p.badge}">${p.badge==='local'?'⬤ Local':'⬤ Live'}</span></div>
+      <div class="proj-name">${p.name}</div>
+      <div class="proj-desc">${p.desc}</div>
+      <div class="proj-foot">
+        <div class="proj-langs">${p.langs.map(l=>`<span class="tag">${l}</span>`).join('')}</div>
+        <a class="proj-link" href="${p.url}" target="_blank">Abrir →</a>
+      </div>
+    </div>`).join('');
+}
+
+/* SCROLL REVEAL */
+function triggerReveal(){
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');obs.unobserve(e.target);}});
+  },{threshold:0.1});
+  document.querySelectorAll('.rev:not(.on)').forEach(el=>obs.observe(el));
+}
+
+/* STACK BARS */
+function animateBars(){
+  const obs=new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting){document.querySelectorAll('.stack-bar').forEach(b=>b.classList.add('animate'));obs.disconnect();}
+  },{threshold:0.3});
+  const card=document.querySelector('.hero-card');
+  if(card) obs.observe(card); else document.querySelectorAll('.stack-bar').forEach(b=>b.classList.add('animate'));
+}
+
+loadGitHub(); renderLocal(); triggerReveal(); animateBars();
+</script>
+</body>
+</html>
