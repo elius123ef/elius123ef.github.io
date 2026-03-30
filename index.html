@@ -575,11 +575,31 @@
 /* CONFIG — edita tus proyectos locales aqui */
 const GITHUB_USER='elius123ef', GITHUB_MAX=6;
 
-const LOCAL_PROJECTS=[
-  { name:'EDA & ML Pipeline', desc:'Pipeline end-to-end: carga de datos, limpieza, visualización y modelos con Scikit-learn sobre datasets reales.', langs:['Python','Pandas','Scikit-learn'], url:'http://localhost:8888', badge:'local', icon:'🔬' },
-  { name:'NLP Spam Detector', desc:'Clasificación de texto para detección de spam usando Transformers y HuggingFace. Interfaz Streamlit.', langs:['Python','HuggingFace','Streamlit'], url:'http://localhost:8501', badge:'local', icon:'🗣️' },
-  { name:'Time Series Forecast', desc:'Forecasting de ventas con ARIMA y LSTM. Visualización interactiva y métricas de evaluación.', langs:['Python','TensorFlow','Seaborn'], url:'http://localhost:7860', badge:'local', icon:'📈' },
-];
+const LOCAL_PROJECTS = [
+  { 
+    name: 'Survival Analysis (SEER)', 
+    desc: 'Modelo XGBoost para predecir meses de supervivencia en pacientes oncológicos usando 9 variables clínicas.', 
+    langs: ['Python', 'XGBoost', 'Streamlit'], 
+    url: 'https://github.com/elius123ef/proyectos/tree/main/Survival_Analysis', // Cambia por tu link real
+    badge: 'LIVE', 
+    icon: '🔬' 
+  },
+  { 
+    name: 'EDA & Clinical Data Pipeline', 
+    desc: 'Limpieza, imputación de nulos y feature engineering sobre el dataset SEER con visualizaciones en Plotly.', 
+    langs: ['Python', 'Pandas', 'Plotly'], 
+    url: 'https://github.com/elius123ef/proyectos', // Cambia por tu link real
+    badge: 'REPO', 
+    icon: '📊' 
+  },
+  { 
+    name: 'NLP Spam Detector', 
+    desc: 'Clasificación de texto para detección de spam usando Transformers. Implementado con interfaz interactiva.', 
+    langs: ['Python', 'HuggingFace', 'Streamlit'], 
+    url: 'https://github.com/elius123ef', // Cambia por tu link real
+    badge: 'NLP', 
+    icon: '🗣️' 
+  },;
 
 /* GITHUB LOADER */
 async function loadGitHub(){
